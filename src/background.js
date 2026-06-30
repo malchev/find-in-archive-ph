@@ -19,18 +19,25 @@ chrome.action.onClicked.addListener((tab) => {
     ? buildArchiveLookupUrl(currentUrl)
     : ARCHIVE_PH_URL;
 
-  const createProperties = {
-    active: true,
-    url: archiveUrl
-  };
-
-  if (tab && typeof tab.index === "number") {
-    createProperties.index = tab.index + 1;
-  }
-
   if (tab && typeof tab.id === "number") {
-    createProperties.openerTabId = tab.id;
+    const createProperties = {
+      active: true,
+      url: archiveUrl
+    };
+
+    if (typeof tab.index === "number") {
+      createProperties.index = tab.index;
+    }
+
+    if (typeof tab.windowId === "number") {
+      createProperties.windowId = tab.windowId;
+    }
+
+    chrome.tabs.create(createProperties, () => {
+      chrome.tabs.remove(tab.id);
+    });
+    return;
   }
 
-  chrome.tabs.create(createProperties);
+  chrome.tabs.create({ active: true, url: archiveUrl });
 });

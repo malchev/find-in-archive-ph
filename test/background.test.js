@@ -10,6 +10,7 @@ function loadBackgroundScript() {
     "utf8"
   );
   const createdTabs = [];
+  const removedTabs = [];
   let clickListener;
 
   const chrome = {
@@ -21,8 +22,14 @@ function loadBackgroundScript() {
       }
     },
     tabs: {
-      create(properties) {
+      create(properties, callback) {
         createdTabs.push(properties);
+        if (callback) {
+          callback({ id: 99 });
+        }
+      },
+      remove(tabId) {
+        removedTabs.push(tabId);
       }
     }
   };
@@ -39,7 +46,8 @@ function loadBackgroundScript() {
 
   return {
     clickListener,
-    createdTabs
+    createdTabs,
+    removedTabs
   };
 }
 
@@ -47,46 +55,50 @@ function asPlainValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("opens an archive.ph exact URL lookup beside the current tab", () => {
-  const { clickListener, createdTabs } = loadBackgroundScript();
+test("replaces the current tab with an archive.ph exact URL lookup", () => {
+  const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
 
   clickListener({
     id: 42,
     index: 3,
+    windowId: 5,
     url: "https://example.com/a/b?x=1&y=two%20words"
   });
 
   assert.deepEqual(asPlainValue(createdTabs), [
     {
       active: true,
-      index: 4,
-      openerTabId: 42,
+      index: 3,
+      windowId: 5,
       url: "https://archive.ph/https%3A//example.com/a/b%3Fx%3D1%26y%3Dtwo%2520words"
     }
   ]);
+  assert.deepEqual(removedTabs, [42]);
 });
 
-test("opens archive.ph homepage for non-web Chrome pages", () => {
-  const { clickListener, createdTabs } = loadBackgroundScript();
+test("replaces non-web Chrome pages with archive.ph homepage", () => {
+  const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
 
   clickListener({
     id: 7,
     index: 0,
+    windowId: 5,
     url: "chrome://extensions/"
   });
 
   assert.deepEqual(asPlainValue(createdTabs), [
     {
       active: true,
-      index: 1,
-      openerTabId: 7,
+      index: 0,
+      windowId: 5,
       url: "https://archive.ph/"
     }
   ]);
+  assert.deepEqual(removedTabs, [7]);
 });
 
 test("opens archive.ph homepage when no tab is available", () => {
-  const { clickListener, createdTabs } = loadBackgroundScript();
+  const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
 
   clickListener();
 
@@ -96,4 +108,5 @@ test("opens archive.ph homepage when no tab is available", () => {
       url: "https://archive.ph/"
     }
   ]);
+  assert.deepEqual(removedTabs, []);
 });
