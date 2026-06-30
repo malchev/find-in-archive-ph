@@ -14,3 +14,5 @@ A minimal Chrome extension that opens an archive.ph lookup for the current tab.
 Click the extension button while viewing any `http://` or `https://` page. The extension replaces the current tab with archive.ph search results for that exact URL.
 
 For non-web pages such as `chrome://extensions/`, the button opens the archive.ph homepage instead.
+
+On archive.ph pages, outbound `/o/...` links are rewritten to archive.ph exact URL lookups. Opening one of those links in a new tab searches archive.ph for the original target URL instead of using the archive.ph outbound proxy.

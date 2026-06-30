@@ -9,6 +9,19 @@
   "background": {
     "service_worker": "src/background.js"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://archive.ph/*"
+      ],
+      "js": [
+        "src/content.js"
+      ],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start"
+    }
+  ],
   "permissions": [
     "activeTab"
   ]
