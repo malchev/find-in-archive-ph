@@ -1,0 +1,10 @@
+{
+  "name": "find-in-archive-ph",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension that opens an archive.ph lookup for the current tab.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

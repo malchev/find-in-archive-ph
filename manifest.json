@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Find in archive.ph",
+  "description": "Open an archive.ph lookup for the current tab.",
+  "version": "1.0.0",
+  "action": {
+    "default_title": "Find in archive.ph"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "permissions": [
+    "activeTab"
+  ]
+}
