@@ -4,7 +4,8 @@
   const LOOKUP_URL_ATTRIBUTE = "data-find-in-archive-ph-lookup-url";
 
   function buildArchiveLookupUrl(pageUrl) {
-    return `${ARCHIVE_PH_URL}${encodeURIComponent(pageUrl).replaceAll("%2F", "/")}`;
+    const strippedUrl = stripUrlParameterValues(pageUrl);
+    return `${ARCHIVE_PH_URL}${encodeURIComponent(strippedUrl).replaceAll("%2F", "/")}`;
   }
 
   function isHttpUrl(pageUrl) {
@@ -14,6 +15,32 @@
     } catch {
       return false;
     }
+  }
+
+  function containsHttpUrl(value) {
+    return /https?:\/\/\S+/i.test(value);
+  }
+
+  function stripUrlParameterValues(pageUrl) {
+    const url = new URL(pageUrl);
+    const strippedParams = new URLSearchParams();
+    let strippedAnyParam = false;
+
+    url.searchParams.forEach((value, name) => {
+      if (containsHttpUrl(value)) {
+        strippedAnyParam = true;
+        return;
+      }
+
+      strippedParams.append(name, value);
+    });
+
+    if (!strippedAnyParam) {
+      return pageUrl;
+    }
+
+    url.search = strippedParams.toString();
+    return url.toString();
   }
 
   function storeLookupUrl(anchor, lookupUrl) {
@@ -226,7 +253,8 @@
     extractOriginalUrlFromArchiveOutboundLink,
     handleArchiveOutboundLinkEvent,
     rewriteArchiveOutboundLink,
-    rewriteArchiveOutboundLinks
+    rewriteArchiveOutboundLinks,
+    stripUrlParameterValues
   };
 
   if (typeof module === "object" && module.exports) {

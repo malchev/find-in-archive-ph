@@ -37,7 +37,8 @@ function loadBackgroundScript() {
   const context = vm.createContext({
     chrome,
     encodeURIComponent,
-    URL
+    URL,
+    URLSearchParams
   });
 
   vm.runInContext(source, context, { filename: "src/background.js" });
@@ -71,6 +72,27 @@ test("replaces the current tab with an archive.ph exact URL lookup", () => {
       index: 3,
       windowId: 5,
       url: "https://archive.ph/https%3A//example.com/a/b%3Fx%3D1%26y%3Dtwo%2520words"
+    }
+  ]);
+  assert.deepEqual(removedTabs, [42]);
+});
+
+test("strips URL-valued query parameters before lookup", () => {
+  const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
+
+  clickListener({
+    id: 42,
+    index: 3,
+    windowId: 5,
+    url: "https://example.com/a?keep=1&redirect=https%3A%2F%2Ftarget.example%2Ffoo&also=http://other.example/path#frag"
+  });
+
+  assert.deepEqual(asPlainValue(createdTabs), [
+    {
+      active: true,
+      index: 3,
+      windowId: 5,
+      url: "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23frag"
     }
   ]);
   assert.deepEqual(removedTabs, [42]);

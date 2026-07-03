@@ -16,3 +16,5 @@ Click the extension button while viewing any `http://` or `https://` page. The e
 For non-web pages such as `chrome://extensions/`, the button opens the archive.ph homepage instead.
 
 On archive.ph pages, outbound `/o/...` links are rewritten to archive.ph exact URL lookups. Opening one of those links in a new tab searches archive.ph for the original target URL instead of using the archive.ph outbound proxy.
+
+Before each archive.ph lookup, query parameters whose values contain `http://` or `https://` URLs are removed from the target URL.

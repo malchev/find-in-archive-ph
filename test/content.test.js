@@ -11,7 +11,8 @@ const {
   buildArchiveLookupUrl,
   extractOriginalUrlFromArchiveOutboundLink,
   handleArchiveOutboundLinkEvent,
-  rewriteArchiveOutboundLink
+  rewriteArchiveOutboundLink,
+  stripUrlParameterValues
 } = require("../src/content.js");
 
 function createAnchor(href, target = "") {
@@ -100,6 +101,18 @@ test("rewrites archive.ph outbound link to archive.ph exact URL lookup", () => {
   );
 });
 
+test("rewrites archive.ph outbound link after stripping URL-valued parameters", () => {
+  const anchor = {
+    href: "https://archive.ph/o/fgc1o/https://example.com/a?keep=1&redirect=https%3A%2F%2Ftarget.example%2Ffoo#section"
+  };
+
+  assert.equal(rewriteArchiveOutboundLink(anchor), true);
+  assert.equal(
+    anchor.href,
+    "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23section"
+  );
+});
+
 test("intercepts rewritten target blank links and opens archive.ph lookup", () => {
   const anchor = createAnchor(
     "https://archive.ph/o/fgc1o/https://www.bloomberg.com/news/articles/2024-08-14/apple-pushes-ahead-with-tabletop-home-device-in-shift-to-robotics",
@@ -170,5 +183,26 @@ test("builds archive.ph lookup URLs consistently", () => {
   assert.equal(
     buildArchiveLookupUrl("https://example.com/a/b?x=1&y=two%20words"),
     "https://archive.ph/https%3A//example.com/a/b%3Fx%3D1%26y%3Dtwo%2520words"
+  );
+});
+
+test("does not normalize URLs when no URL-valued parameters are stripped", () => {
+  assert.equal(
+    stripUrlParameterValues("https://example.com/a/b?x=1&y=two%20words"),
+    "https://example.com/a/b?x=1&y=two%20words"
+  );
+});
+
+test("strips URL-valued parameters while preserving other parameters and hash", () => {
+  assert.equal(
+    stripUrlParameterValues("https://example.com/a?keep=1&target=https%3A%2F%2Ftarget.example%2Fx&keep=2#frag"),
+    "https://example.com/a?keep=1&keep=2#frag"
+  );
+});
+
+test("builds lookup URL after stripping URL-valued parameters", () => {
+  assert.equal(
+    buildArchiveLookupUrl("https://example.com/a?keep=1&target=https%3A%2F%2Ftarget.example%2Fx#frag"),
+    "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23frag"
   );
 });
