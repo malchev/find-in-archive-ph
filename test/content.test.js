@@ -12,7 +12,7 @@ const {
   extractOriginalUrlFromArchiveOutboundLink,
   handleArchiveOutboundLinkEvent,
   rewriteArchiveOutboundLink,
-  stripUrlParameterValues
+  stripUrlParameters
 } = require("../src/content.js");
 
 function createAnchor(href, target = "") {
@@ -101,7 +101,7 @@ test("rewrites archive.ph outbound link to archive.ph exact URL lookup", () => {
   );
 });
 
-test("rewrites archive.ph outbound link after stripping URL-valued parameters", () => {
+test("rewrites archive.ph outbound link after stripping query parameters", () => {
   const anchor = {
     href: "https://archive.ph/o/fgc1o/https://example.com/a?keep=1&redirect=https%3A%2F%2Ftarget.example%2Ffoo#section"
   };
@@ -109,7 +109,7 @@ test("rewrites archive.ph outbound link after stripping URL-valued parameters", 
   assert.equal(rewriteArchiveOutboundLink(anchor), true);
   assert.equal(
     anchor.href,
-    "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23section"
+    "https://archive.ph/https%3A//example.com/a%23section"
   );
 });
 
@@ -182,27 +182,34 @@ test("does not rewrite non-archive.ph outbound links", () => {
 test("builds archive.ph lookup URLs consistently", () => {
   assert.equal(
     buildArchiveLookupUrl("https://example.com/a/b?x=1&y=two%20words"),
-    "https://archive.ph/https%3A//example.com/a/b%3Fx%3D1%26y%3Dtwo%2520words"
+    "https://archive.ph/https%3A//example.com/a/b"
   );
 });
 
-test("does not normalize URLs when no URL-valued parameters are stripped", () => {
+test("does not normalize URLs when no query parameters are stripped", () => {
   assert.equal(
-    stripUrlParameterValues("https://example.com/a/b?x=1&y=two%20words"),
-    "https://example.com/a/b?x=1&y=two%20words"
+    stripUrlParameters("https://example.com/a/b#section"),
+    "https://example.com/a/b#section"
   );
 });
 
-test("strips URL-valued parameters while preserving other parameters and hash", () => {
+test("strips all query parameters while preserving hash", () => {
   assert.equal(
-    stripUrlParameterValues("https://example.com/a?keep=1&target=https%3A%2F%2Ftarget.example%2Fx&keep=2#frag"),
-    "https://example.com/a?keep=1&keep=2#frag"
+    stripUrlParameters("https://example.com/a?keep=1&target=https%3A%2F%2Ftarget.example%2Fx&keep=2#frag"),
+    "https://example.com/a#frag"
   );
 });
 
-test("builds lookup URL after stripping URL-valued parameters", () => {
+test("builds lookup URL after stripping query parameters", () => {
   assert.equal(
     buildArchiveLookupUrl("https://example.com/a?keep=1&target=https%3A%2F%2Ftarget.example%2Fx#frag"),
-    "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23frag"
+    "https://archive.ph/https%3A//example.com/a%23frag"
+  );
+});
+
+test("builds lookup URL after stripping The Information tracking parameters", () => {
+  assert.equal(
+    buildArchiveLookupUrl("https://www.theinformation.com/newsletters/ai-agenda/universities-fret-anthropic-openai-meta-deepmind-lure-professors?utm_campaign=article_email&utm_content=article-17441&utm_medium=email&utm_source=sg"),
+    "https://archive.ph/https%3A//www.theinformation.com/newsletters/ai-agenda/universities-fret-anthropic-openai-meta-deepmind-lure-professors"
   );
 });

@@ -37,8 +37,7 @@ function loadBackgroundScript() {
   const context = vm.createContext({
     chrome,
     encodeURIComponent,
-    URL,
-    URLSearchParams
+    URL
   });
 
   vm.runInContext(source, context, { filename: "src/background.js" });
@@ -71,13 +70,13 @@ test("replaces the current tab with an archive.ph exact URL lookup", () => {
       active: true,
       index: 3,
       windowId: 5,
-      url: "https://archive.ph/https%3A//example.com/a/b%3Fx%3D1%26y%3Dtwo%2520words"
+      url: "https://archive.ph/https%3A//example.com/a/b"
     }
   ]);
   assert.deepEqual(removedTabs, [42]);
 });
 
-test("strips URL-valued query parameters before lookup", () => {
+test("strips all query parameters before lookup", () => {
   const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
 
   clickListener({
@@ -92,7 +91,28 @@ test("strips URL-valued query parameters before lookup", () => {
       active: true,
       index: 3,
       windowId: 5,
-      url: "https://archive.ph/https%3A//example.com/a%3Fkeep%3D1%23frag"
+      url: "https://archive.ph/https%3A//example.com/a%23frag"
+    }
+  ]);
+  assert.deepEqual(removedTabs, [42]);
+});
+
+test("strips tracking parameters from The Information URLs before lookup", () => {
+  const { clickListener, createdTabs, removedTabs } = loadBackgroundScript();
+
+  clickListener({
+    id: 42,
+    index: 3,
+    windowId: 5,
+    url: "https://www.theinformation.com/newsletters/ai-agenda/universities-fret-anthropic-openai-meta-deepmind-lure-professors?utm_campaign=article_email&utm_content=article-17441&utm_medium=email&utm_source=sg"
+  });
+
+  assert.deepEqual(asPlainValue(createdTabs), [
+    {
+      active: true,
+      index: 3,
+      windowId: 5,
+      url: "https://archive.ph/https%3A//www.theinformation.com/newsletters/ai-agenda/universities-fret-anthropic-openai-meta-deepmind-lure-professors"
     }
   ]);
   assert.deepEqual(removedTabs, [42]);

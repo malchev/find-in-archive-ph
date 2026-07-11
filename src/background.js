@@ -1,7 +1,7 @@
 const ARCHIVE_PH_URL = "https://archive.ph/";
 
 function buildArchiveLookupUrl(pageUrl) {
-  const strippedUrl = stripUrlParameterValues(pageUrl);
+  const strippedUrl = stripUrlParameters(pageUrl);
   return `${ARCHIVE_PH_URL}${encodeURIComponent(strippedUrl).replaceAll("%2F", "/")}`;
 }
 
@@ -14,29 +14,14 @@ function isHttpUrl(pageUrl) {
   }
 }
 
-function containsHttpUrl(value) {
-  return /https?:\/\/\S+/i.test(value);
-}
-
-function stripUrlParameterValues(pageUrl) {
+function stripUrlParameters(pageUrl) {
   const url = new URL(pageUrl);
-  const strippedParams = new URLSearchParams();
-  let strippedAnyParam = false;
 
-  url.searchParams.forEach((value, name) => {
-    if (containsHttpUrl(value)) {
-      strippedAnyParam = true;
-      return;
-    }
-
-    strippedParams.append(name, value);
-  });
-
-  if (!strippedAnyParam) {
+  if (!url.search) {
     return pageUrl;
   }
 
-  url.search = strippedParams.toString();
+  url.search = "";
   return url.toString();
 }
 
